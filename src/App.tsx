@@ -29,7 +29,7 @@ import { CaptainDashboard } from './pages/captain/CaptainDashboard';
 export default function App() {
   return (
     <CricketDataProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-amber-400 selection:text-slate-950">
           <Navbar />
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
