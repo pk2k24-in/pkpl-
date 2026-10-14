@@ -1,0 +1,236 @@
+{
+  "entities": {
+    "Tournament": {
+      "title": "Tournament",
+      "description": "Cricket tournament document storing format, dates, status, and rules.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "season": { "type": "string", "maxLength": 50 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "startDate": { "type": "string", "maxLength": 30 },
+        "endDate": { "type": "string", "maxLength": 30 },
+        "venue": { "type": "string", "maxLength": 100 },
+        "format": { "type": "string", "enum": ["League", "Knockout", "Group+Knockout"] },
+        "matchFormat": { "type": "string", "enum": ["T20", "T10", "15-Overs", "Custom"] },
+        "status": { "type": "string", "enum": ["upcoming", "ongoing", "completed"] },
+        "participatingTeamIds": { "type": "array" },
+        "totalTeams": { "type": "number" },
+        "rules": { "type": "object" },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "name", "season", "status", "format", "matchFormat"]
+    },
+    "Team": {
+      "title": "Team",
+      "description": "Participating cricket franchise team details and captaincy info.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "shortName": { "type": "string", "maxLength": 10 },
+        "primaryColor": { "type": "string", "maxLength": 20 },
+        "secondaryColor": { "type": "string", "maxLength": 20 },
+        "captainId": { "type": "string", "maxLength": 128 },
+        "captainName": { "type": "string", "maxLength": 100 },
+        "captainUid": { "type": "string", "maxLength": 128 },
+        "contactEmail": { "type": "string", "maxLength": 100 },
+        "contactPhone": { "type": "string", "maxLength": 30 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "establishedYear": { "type": "number" },
+        "homeGround": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "name", "shortName", "primaryColor", "captainName", "status"]
+    },
+    "Player": {
+      "title": "Player",
+      "description": "Registered cricket player with batting and bowling profile and tournament stats.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "teamId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "jerseyNumber": { "type": "number" },
+        "role": { "type": "string", "enum": ["batter", "bowler", "all-rounder", "wicketkeeper-batter"] },
+        "battingStyle": { "type": "string", "maxLength": 50 },
+        "bowlingStyle": { "type": "string", "maxLength": 50 },
+        "isActive": { "type": "boolean" },
+        "stats": { "type": "object" },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "teamId", "name", "role", "isActive"]
+    },
+    "Match": {
+      "title": "Match",
+      "description": "Official cricket match document with live score state, toss, umpires, and final result.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "tournamentId": { "type": "string", "maxLength": 128 },
+        "matchNumber": { "type": "number" },
+        "format": { "type": "string", "maxLength": 20 },
+        "team1Id": { "type": "string", "maxLength": 128 },
+        "team1Name": { "type": "string", "maxLength": 100 },
+        "team1Short": { "type": "string", "maxLength": 10 },
+        "team1Color": { "type": "string", "maxLength": 20 },
+        "team2Id": { "type": "string", "maxLength": 128 },
+        "team2Name": { "type": "string", "maxLength": 100 },
+        "team2Short": { "type": "string", "maxLength": 10 },
+        "team2Color": { "type": "string", "maxLength": 20 },
+        "venue": { "type": "string", "maxLength": 100 },
+        "date": { "type": "string", "maxLength": 30 },
+        "startTime": { "type": "string", "maxLength": 30 },
+        "status": { "type": "string", "enum": ["draft", "scheduled", "lineup_submitted", "ready", "toss", "live", "innings_break", "rain_delay", "completed", "abandoned", "tied"] },
+        "overs": { "type": "number" },
+        "umpireName": { "type": "string", "maxLength": 100 },
+        "umpireId": { "type": "string", "maxLength": 128 },
+        "umpireUid": { "type": "string", "maxLength": 128 },
+        "currentInningsNumber": { "type": "number" },
+        "toss": { "type": "object" },
+        "innings1": { "type": "object" },
+        "innings2": { "type": "object" },
+        "winnerTeamId": { "type": "string", "maxLength": 128 },
+        "resultDescription": { "type": "string", "maxLength": 300 },
+        "playerOfTheMatchId": { "type": "string", "maxLength": 128 },
+        "playerOfTheMatchName": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "tournamentId", "matchNumber", "team1Id", "team2Id", "status", "venue", "date"]
+    },
+    "Delivery": {
+      "title": "Delivery",
+      "description": "Ball-by-ball delivery event in a cricket match innings.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "matchId": { "type": "string", "maxLength": 128 },
+        "inningsNumber": { "type": "number" },
+        "overNumber": { "type": "number" },
+        "ballInOver": { "type": "number" },
+        "bowlerId": { "type": "string", "maxLength": 128 },
+        "bowlerName": { "type": "string", "maxLength": 100 },
+        "strikerId": { "type": "string", "maxLength": 128 },
+        "strikerName": { "type": "string", "maxLength": 100 },
+        "nonStrikerId": { "type": "string", "maxLength": 128 },
+        "nonStrikerName": { "type": "string", "maxLength": 100 },
+        "batterRuns": { "type": "number" },
+        "extraType": { "type": "string", "enum": ["wide", "no-ball", "bye", "leg-bye"] },
+        "extraRuns": { "type": "number" },
+        "totalRuns": { "type": "number" },
+        "isWicket": { "type": "boolean" },
+        "isLegal": { "type": "boolean" },
+        "isBoundaryFour": { "type": "boolean" },
+        "isBoundarySix": { "type": "boolean" },
+        "isUndone": { "type": "boolean" },
+        "commentary": { "type": "string", "maxLength": 500 },
+        "timestamp": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "matchId", "inningsNumber", "overNumber", "ballInOver", "bowlerId", "strikerId", "totalRuns"]
+    },
+    "MatchLineup": {
+      "title": "MatchLineup",
+      "description": "Team playing XI and substitute list submitted by Captain for a match.",
+      "type": "object",
+      "properties": {
+        "matchId": { "type": "string", "maxLength": 128 },
+        "teamId": { "type": "string", "maxLength": 128 },
+        "playingXI": { "type": "array" },
+        "substitutes": { "type": "array" },
+        "submittedAt": { "type": "string", "maxLength": 50 },
+        "isLocked": { "type": "boolean" },
+        "submittedByUid": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["matchId", "teamId", "playingXI", "isLocked"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Official committee announcement or weather alert.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "summary": { "type": "string", "maxLength": 500 },
+        "content": { "type": "string", "maxLength": 5000 },
+        "date": { "type": "string", "maxLength": 30 },
+        "author": { "type": "string", "maxLength": 100 },
+        "authorUid": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "enum": ["Schedule", "Weather", "Notice", "Committee", "Discipline"] },
+        "isPinned": { "type": "boolean" }
+      },
+      "required": ["id", "title", "content", "category", "author"]
+    },
+    "Venue": {
+      "title": "Venue",
+      "description": "Cricket ground and stadium information.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "city": { "type": "string", "maxLength": 50 },
+        "address": { "type": "string", "maxLength": 250 },
+        "pitchType": { "type": "string", "maxLength": 50 },
+        "boundarySizeMeters": { "type": "number" },
+        "capacity": { "type": "number" }
+      },
+      "required": ["id", "name", "city", "pitchType"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "App user profile mapping auth UID to role (organizer, umpire, captain).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 100 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["organizer", "umpire", "captain", "spectator"] },
+        "teamId": { "type": "string", "maxLength": 128 },
+        "umpireId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/tournaments/{tournamentId}": {
+      "schema": "Tournament",
+      "description": "Official cricket tournaments."
+    },
+    "/teams/{teamId}": {
+      "schema": "Team",
+      "description": "Franchise cricket teams."
+    },
+    "/players/{playerId}": {
+      "schema": "Player",
+      "description": "Registered cricketers across teams."
+    },
+    "/matches/{matchId}": {
+      "schema": "Match",
+      "description": "Cricket match schedule, live score, and results."
+    },
+    "/matches/{matchId}/deliveries/{deliveryId}": {
+      "schema": "Delivery",
+      "description": "Ball-by-ball delivery log for a match."
+    },
+    "/matches/{matchId}/lineups/{teamId}": {
+      "schema": "MatchLineup",
+      "description": "Submitted playing XI for a team in a match."
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Tournament announcements and bulletins."
+    },
+    "/venues/{venueId}": {
+      "schema": "Venue",
+      "description": "Cricket grounds and stadiums."
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User account role and profile."
+    }
+  }
+}

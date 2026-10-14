@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOrganizer() {
+      return isSignedIn() && (
+        request.auth.token.email == 'pk2k24.in@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'organizer')
+      );
+    }
+
+    function isCaptainOfTeam(teamId) {
+      return isSignedIn() && (
+        isOrganizer() ||
+        (exists(/databases/$(database)/documents/teams/$(teamId)) &&
+         get(/databases/$(database)/documents/teams/$(teamId)).data.captainUid == request.auth.uid) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamId == teamId)
+      );
+    }
+
+    function isAssignedUmpireForMatch(matchData) {
+      return isSignedIn() && (
+        isOrganizer() ||
+        matchData.umpireUid == request.auth.uid ||
+        matchData.umpireId == request.auth.uid ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'umpire' &&
+         (matchData.umpireId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.umpireId ||
+          matchData.umpireUid == request.auth.uid))
+      );
+    }
+
+    // 1. Tournaments - Public read, Organizer write
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow write: if isOrganizer();
+    }
+
+    // 2. Venues - Public read, Organizer write
+    match /venues/{venueId} {
+      allow read: if true;
+      allow write: if isOrganizer();
+    }
+
+    // 3. Announcements - Public read, Organizer write
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if isOrganizer();
+    }
+
+    // 4. Teams - Public read, Organizer full write, Captain can update contact/style details
+    match /teams/{teamId} {
+      allow read: if true;
+      allow create, delete: if isOrganizer();
+      allow update: if isOrganizer() || (
+        isSignedIn() &&
+        (existing().captainUid == request.auth.uid ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamId == teamId)) &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'captainName', 'contactEmail', 'contactPhone', 'description', 'primaryColor', 'secondaryColor'
+        ])
+      );
+    }
+
+    // 5. Players - Public read, Organizer full write, Captain of that team can add/edit
+    match /players/{playerId} {
+      allow read: if true;
+      allow create: if isOrganizer() || isCaptainOfTeam(incoming().teamId);
+      allow update: if isOrganizer() || isCaptainOfTeam(existing().teamId);
+      allow delete: if isOrganizer() || isCaptainOfTeam(existing().teamId);
+    }
+
+    // 6. Matches - Public read, Organizer full write, Assigned Umpire can update scoring & state
+    match /matches/{matchId} {
+      allow read: if true;
+      allow create, delete: if isOrganizer();
+      allow update: if isOrganizer() || (
+        isAssignedUmpireForMatch(existing()) &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'status', 'toss', 'currentInningsNumber', 'innings1', 'innings2',
+          'winnerTeamId', 'resultString', 'resultDescription', 'playerOfTheMatch',
+          'playerOfTheMatchId', 'playerOfTheMatchName', 'updatedAt', 'overs', 'notes'
+        ])
+      );
+
+      // Subcollection: Deliveries - Public read, ONLY Assigned Umpire or Organizer can record/edit/undo
+      match /deliveries/{deliveryId} {
+        allow read: if true;
+        allow create, update, delete: if isOrganizer() || (
+          isAssignedUmpireForMatch(get(/databases/$(database)/documents/matches/$(matchId)).data)
+        );
+      }
+
+      // Subcollection: Lineups - Public read, Captain of that team or Organizer can submit
+      match /lineups/{teamId} {
+        allow read: if true;
+        allow create, update: if isCaptainOfTeam(teamId);
+        allow delete: if isOrganizer();
+      }
+    }
+
+    // 7. Users - Public read for roster/umpire references, authenticated user profile management
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOrganizer() || (
+        isSignedIn() && request.auth.uid == userId &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email'])
+      );
+      allow delete: if isOrganizer();
+    }
+  }
+}
